@@ -5,25 +5,25 @@ namespace HotChocolateWorkshop.Graph;
 
 public class Subscription
 {
-    [Subscribe(With = nameof(SubscribeToCreatedIncidents))]
-    public Incident IncidentCreated(
-        [EventMessage] Incident incident) => incident;
+    [Subscribe(With = nameof(SubscribeToCreatedRockets))]
+    public Rocket RocketCreated(
+        [EventMessage] Rocket rocket) => rocket;
 
-    private async IAsyncEnumerable<Incident> SubscribeToCreatedIncidents(
+    private async IAsyncEnumerable<Rocket> SubscribeToCreatedRockets(
         ITopicEventReceiver topicEventReceiver,
         string? severity)
     {
        var subscription = await topicEventReceiver
-           .SubscribeAsync<Incident>(nameof(IncidentCreated));
+           .SubscribeAsync<Rocket>(nameof(RocketCreated));
 
-       await foreach (var incident in subscription.ReadEventsAsync())
+       await foreach (var rocket in subscription.ReadEventsAsync())
        {
-           if (severity != null && incident.Severity != severity)
+           if (severity != null && rocket.Description != severity)
            {
                continue;
            }
            
-           yield return incident;
+           yield return rocket;
        }
     }
 }

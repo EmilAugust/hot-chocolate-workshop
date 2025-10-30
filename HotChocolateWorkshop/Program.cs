@@ -1,9 +1,12 @@
-using HotChocolateWorkshop.Entities;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using HotChocolateWorkshop.Graph;
+using HotChocolateWorkshop.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<List<Incident>>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
@@ -11,9 +14,29 @@ builder.Services.AddGraphQLServer()
     .AddSubscriptionType<Subscription>()
     .AddInMemorySubscriptions();
 
+builder.Services.AddHangfire(option =>
+{
+    option.UseMemoryStorage();
+});
+
+builder.Services.AddHangfireServer();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite("Data Source=app.db");
+});
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 app.MapGraphQL();
 app.MapNitroApp();
+
+app.MapHangfireDashboard();
 
 app.Run();

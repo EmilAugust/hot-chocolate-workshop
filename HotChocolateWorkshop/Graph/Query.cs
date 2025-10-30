@@ -1,9 +1,12 @@
 using HotChocolateWorkshop.Entities;
+using HotChocolateWorkshop.Persistence;
 
 namespace HotChocolateWorkshop.Graph;
 
 public class Query
 {
-    public List<Incident> Incidents(
-        [Service] List<Incident> incidents) => incidents;
+    public IQueryable<Rocket> Rockets([Service] AppDbContext dbContext)
+    {
+        return dbContext.Rockets;
+    }
 }

@@ -1,28 +1,41 @@
+using Hangfire;
 using HotChocolate.Subscriptions;
 using HotChocolateWorkshop.Entities;
+using HotChocolateWorkshop.Jobs;
+using HotChocolateWorkshop.Persistence;
 
 namespace HotChocolateWorkshop.Graph;
 
 public class Mutation
 {
-    public async Task<Incident> CreateIncident(
-        [Service] List<Incident> incidents,
+    public async Task<Rocket> CreateRocket(
+        [Service] AppDbContext dbContext,
         [Service] ITopicEventSender topicEventSender,
-        string title, string severity)
+        string name, string description)
     {
-        var incident = new Incident
+        var rocket = new Rocket
         {
             Id = Guid.NewGuid(),
-            Title = title,
-            Severity = severity
+            Name = name,
+            Description = description
         };
-        
-        incidents.Add(incident);
+
+        dbContext.Rockets.Add(rocket);
+        await dbContext.SaveChangesAsync();
         
         await topicEventSender.SendAsync(
-            nameof(Subscription.IncidentCreated),
-            incident);
+            nameof(Subscription.RocketCreated),
+            rocket);
         
-        return incident;
+        return rocket;
+    }
+
+    public string ImportRockets(
+        [Service] IBackgroundJobClientV2 backgroundJobClient)
+    {
+        backgroundJobClient.Enqueue<ImportRocketsJob>(
+            i => i.RunAsync());
+
+        return "Job queued";
     }
 }
