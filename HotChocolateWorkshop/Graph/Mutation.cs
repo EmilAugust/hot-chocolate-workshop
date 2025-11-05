@@ -9,8 +9,8 @@ namespace HotChocolateWorkshop.Graph;
 public class Mutation
 {
     public async Task<Rocket> CreateRocket(
-        [Service] AppDbContext dbContext,
-        [Service] ITopicEventSender topicEventSender,
+        AppDbContext dbContext,
+        ITopicEventSender topicEventSender,
         string name, string description)
     {
         var rocket = new Rocket
