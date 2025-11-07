@@ -31,11 +31,23 @@ public class Mutation
     }
 
     public string ImportRockets(
-        [Service] IBackgroundJobClientV2 backgroundJobClient)
+        IBackgroundJobClientV2 backgroundJobClient)
     {
         backgroundJobClient.Enqueue<ImportRocketsJob>(
             i => i.RunAsync());
 
         return "Job queued";
+    }
+    
+    public string ScheduleImportRockets(
+        string cron,
+        IRecurringJobManagerV2 recurringJobManager)
+    {
+        recurringJobManager.AddOrUpdate<ImportRocketsJob>(
+            ImportRocketsJob.JobName,
+            i => i.RunAsync(),
+            cron);
+
+        return "Job scheduled";
     }
 }

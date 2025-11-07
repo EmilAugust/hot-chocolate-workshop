@@ -1,11 +1,14 @@
 using System.Text.Json;
 using HotChocolateWorkshop.Entities;
 using HotChocolateWorkshop.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolateWorkshop.Jobs;
 
 public class ImportRocketsJob(IHttpClientFactory httpClientFactory, AppDbContext dbContext)
 {
+    public const string JobName = "Import Rockets";
+    
     private const string Url = "https://api.spacexdata.com/v3/rockets";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -20,17 +23,31 @@ public class ImportRocketsJob(IHttpClientFactory httpClientFactory, AppDbContext
         var rockets = await httpClient
                           .GetFromJsonAsync<SpaceXRocketDto[]>(Url, SerializerOptions)
                       ?? throw new InvalidOperationException("Invalid rocket response.");
-        
-        dbContext.Rockets.AddRange(rockets.Select(rocket => new Rocket
+
+        foreach (var rocket in rockets)
         {
-            Id = Guid.NewGuid(),
-            Name = rocket.RocketName,
-            Description = rocket.Description
-        }));
+            var dbRocket = await dbContext.Rockets
+                .FirstOrDefaultAsync(dbRocket => dbRocket.Name == rocket.RocketName);
+            
+            if (dbRocket is not null)
+            {
+                if (dbRocket.Description != rocket.Description)
+                {
+                    dbRocket.Description = rocket.Description;
+                }
+                
+                continue;
+            }
+            
+            dbContext.Rockets.Add(new Rocket
+            {
+                Id = Guid.NewGuid(),
+                Name = rocket.RocketName,
+                Description = rocket.Description
+            });
+        }
         
         await dbContext.SaveChangesAsync();
-        
-        Console.WriteLine($"Found {rockets.Length} rockets");
     }
 
     private class SpaceXRocketDto
