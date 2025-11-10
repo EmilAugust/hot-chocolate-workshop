@@ -42,8 +42,10 @@ public class ImportRocketsJob(IHttpClientFactory httpClientFactory, AppDbContext
             dbContext.Rockets.Add(new Rocket
             {
                 Id = Guid.NewGuid(),
+                RocketId = rocket.RocketId,
                 Name = rocket.RocketName,
-                Description = rocket.Description
+                Description = rocket.Description,
+                Launches = []
             });
         }
         
@@ -52,6 +54,7 @@ public class ImportRocketsJob(IHttpClientFactory httpClientFactory, AppDbContext
 
     private class SpaceXRocketDto
     {
+        public required string RocketId { get; init; }
         public required string RocketName { get; init; }
         public required string Description { get; init; }
     }

@@ -12,6 +12,7 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddSubscriptionType<Subscription>()
+    .AddProjections()
     .AddInMemorySubscriptions();
 
 builder.Services.AddHangfire(option =>

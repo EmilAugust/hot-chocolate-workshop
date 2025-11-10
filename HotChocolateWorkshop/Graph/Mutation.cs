@@ -11,13 +11,17 @@ public class Mutation
     public async Task<Rocket> CreateRocket(
         AppDbContext dbContext,
         ITopicEventSender topicEventSender,
-        string name, string description)
+        string rocketId,
+        string name,
+        string description)
     {
         var rocket = new Rocket
         {
             Id = Guid.NewGuid(),
+            RocketId = rocketId,
             Name = name,
-            Description = description
+            Description = description,
+            Launches = []
         };
 
         dbContext.Rockets.Add(rocket);
@@ -49,5 +53,14 @@ public class Mutation
             cron);
 
         return "Job scheduled";
+    }
+    
+    public string ImportLaunches(
+        IBackgroundJobClientV2 backgroundJobClient)
+    {
+        backgroundJobClient.Enqueue<ImportLaunchesJob>(
+            i => i.RunAsync());
+
+        return "Job queued";
     }
 }

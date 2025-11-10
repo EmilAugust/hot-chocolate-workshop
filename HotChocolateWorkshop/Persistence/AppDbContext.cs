@@ -7,4 +7,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     : DbContext(options)
 {
     public DbSet<Rocket> Rockets { get; init; }
+    public DbSet<Launch> Launches { get; init; }
 }
